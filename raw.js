@@ -117,9 +117,9 @@ export function pointerFor(record, readFile = readFileSync) {
   const id = record?.toolCallId || "";
   if (!id) return "";
   const checked = record?.ok ? verifiedRaw(record, readFile) : null;
-  if (!checked?.ok) return `无完整备份 [${id}]`;
-  const label = checked.label ? `${checked.label} ` : "";
-  return `${label}原文 ${checked.path} sha256:${checked.sha256.slice(0, 12)} ${checked.bytes}字节 [${id}]`;
+  if (!checked?.ok) return `No complete backup [${id}]`;
+  const label = checked.label ? `${checked.label}: ` : "";
+  return `${label}raw text ${checked.path} sha256:${checked.sha256.slice(0, 12)} ${checked.bytes} bytes [${id}]`;
 }
 
 export function restoreToolText(message, record) {

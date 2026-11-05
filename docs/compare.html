@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>边做边压 测评</title>
+<title>Live Compact benchmark</title>
 <style>
   :root { --bg:#0c0e12; --card:#171a21; --line:#2a3140; --text:#f4f6f8; --muted:#9aa3b2; --orange:#ff7a2f; --green:#3dd68c; }
   * { box-sizing:border-box; }
@@ -26,46 +26,46 @@
 </head>
 <body>
 <div class="page" id="p150">
-  <h1>150 题 · 同一个会话</h1>
-  <div class="sub">Aider polyglot-benchmark 7e0611e。Python、Go、JavaScript、Rust、Java 各 30 题，没有 C++。五种语言按字母序穿插。</div>
+  <h1>150 tasks · one conversation</h1>
+  <div class="sub">Aider polyglot-benchmark 7e0611e. 30 tasks each in Python, Go, JavaScript, Rust and Java, no C++. The five languages are interleaved in alphabetical order.</div>
   <div class="pills">
-    <div class="pill">比原版便宜 <b>23%</b></div>
-    <div class="pill">预热 <b>0 次</b></div>
-    <div class="pill">命中率 <b>99.56%</b></div>
+    <div class="pill">23% cheaper than stock</div>
+    <div class="pill">0 warm-ups</div>
+    <div class="pill">99.56% hit rate</div>
   </div>
   <table>
     <tr>
       <th></th>
-      <th class="num">原版</th>
-      <th class="num">边做边压 1.0.0</th>
+      <th class="num">Stock</th>
+      <th class="num">Live Compact 1.0.0</th>
     </tr>
-    <tr><td>通过</td><td class="num">150/150</td><td class="num new">150/150</td></tr>
-    <tr><td>命中率</td><td class="num">99.55%</td><td class="num new">99.56%</td></tr>
-    <tr><td>缓存命中</td><td class="num">335.0M</td><td class="num new">244.3M</td></tr>
-    <tr><td>缓存未命中</td><td class="num">1.498M</td><td class="num new">1.088M</td></tr>
-    <tr><td>费用</td><td class="num">$1.50</td><td class="num new">$1.15（预热 0）</td></tr>
-    <tr><td>峰值</td><td class="num">679K</td><td class="num new">589K</td></tr>
-    <tr><td>压缩</td><td class="num">1 次，12.8 秒</td><td class="num new">145 刀，474K，2.2 秒</td></tr>
-    <tr><td>墙钟</td><td class="num">8,531 秒</td><td class="num new">6,105 秒</td></tr>
+    <tr><td>Passed</td><td class="num">150/150</td><td class="num new">150/150</td></tr>
+    <tr><td>Hit rate</td><td class="num">99.55%</td><td class="num new">99.56%</td></tr>
+    <tr><td>Cache hits</td><td class="num">335.0M</td><td class="num new">244.3M</td></tr>
+    <tr><td>Cache misses</td><td class="num">1.498M</td><td class="num new">1.088M</td></tr>
+    <tr><td>Cost</td><td class="num">$1.50</td><td class="num new">$1.15 (0 warm-ups)</td></tr>
+    <tr><td>Peak</td><td class="num">679K</td><td class="num new">589K</td></tr>
+    <tr><td>Compaction</td><td class="num">1 run, 12.8 s</td><td class="num new">145 cuts, 474K, 2.2 s</td></tr>
+    <tr><td>Wall clock</td><td class="num">8,531 s</td><td class="num new">6,105 s</td></tr>
   </table>
-  <div class="note">公开仓 1.0.0 就是这一版。145 刀，切掉 474,393 token，2,190 毫秒。峰值 589,414，结束 589,554，没到 65 万。墙钟 6,105 秒这轮只跑了插件一边，快出来的时间不能全算在插件上。</div>
+  <div class="note">The public 1.0.0 repo is this build. 145 cuts removed 474,393 tokens in 2,190 ms. Peak 589,414, ended 589,554, under 650K. This wall-clock round ran only the plugin side, so not all of the saved time can be credited to the plugin.</div>
 </div>
 <div class="page" id="p20">
-  <h1>20 题 · 另一场</h1>
-  <div class="sub">WebUniverse 长任务，同一个会话。不是上面那 150 题，不并进一张表。</div>
+  <h1>20 tasks · the other run</h1>
+  <div class="sub">WebUniverse long tasks, one conversation. Not the 150 tasks above; not merged into that table.</div>
   <table>
     <tr>
       <th></th>
-      <th class="num">原版</th>
-      <th class="num">边做边压 1.0.0</th>
+      <th class="num">Stock</th>
+      <th class="num">Live Compact 1.0.0</th>
     </tr>
-    <tr><td>第 15 题压缩</td><td class="num">1 次模型摘要，14.6 秒，切掉 520,460</td><td class="num new">本地切，不调模型</td></tr>
-    <tr><td>压完当时上下文</td><td class="num">154,667</td><td class="num new">同题仍在小切</td></tr>
-    <tr><td>第 20 题结束上下文</td><td class="num">433,844</td><td class="num new">323,726</td></tr>
-    <tr><td>第 20 题这一跳</td><td class="num">缓存 432,512 / 未命中 677 / 99.84%</td><td class="num new">缓存 322,944 / 未命中 170 / 99.95%</td></tr>
-    <tr><td>全程压缩</td><td class="num">1 次，14,552 毫秒</td><td class="num new">20 刀，74 毫秒</td></tr>
+    <tr><td>Compaction at task 15</td><td class="num">1 model summary, 14.6 s, cut 520,460</td><td class="num new">local cut, no model call</td></tr>
+    <tr><td>Context right after compaction</td><td class="num">154,667</td><td class="num new">still cutting locally on that task</td></tr>
+    <tr><td>Context at end of task 20</td><td class="num">433,844</td><td class="num new">323,726</td></tr>
+    <tr><td>Task-20 jump</td><td class="num">cache 432,512 / miss 677 / 99.84%</td><td class="num new">cache 322,944 / miss 170 / 99.95%</td></tr>
+    <tr><td>Compaction over the run</td><td class="num">1 run, 14,552 ms</td><td class="num new">20 cuts, 74 ms</td></tr>
   </table>
-  <div class="note">原版第 15 题 webuniverse-13146 才碰到大门。压完上下文掉到 15.5 万，第 20 题又涨回 43.4 万。插件 20 刀都在本地，结束时还低 11 万。这是第 20 题结束那一跳的命中，不是 150 题那种全程加总。</div>
+  <div class="note">Stock only reached the big gate at task 15, webuniverse-13146. After compaction context fell to 155K, then rose back to 434K by task 20. The plugin's 20 cuts were all local, and it still ended 110K lower. This is the hit rate of the jump at the end of task 20, not a whole-run total like the 150-task table.</div>
 </div>
 </body>
 </html>

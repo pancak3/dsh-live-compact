@@ -62,27 +62,27 @@ function releaseCompaction(ctx) {
 }
 
 function visibleTakeover(ctx, reason) {
-  const line = `spine: ${MARK}。${reason}`;
+  const line = `spine: ${MARK}. ${reason}`;
   console.error(line);
   ctx?.logger?.warn?.(line);
 }
 
-const MARK = "本会话未接管";
+const MARK = "not taken over in this session";
 
 const UnavailableCompaction = CompactionEngine
   ? class extends CompactionEngine {
     constructor(ctx, reason) {
       super(ctx);
       this.reason = reason;
-      ctx.logger?.warn?.(`spine: ${MARK}。压缩没有装上，这一刀没有执行。${reason}`);
+      ctx.logger?.warn?.(`spine: ${MARK}. Compaction is not installed, so this cut did not run. ${reason}`);
     }
 
     compactIfNeeded() {
-      return Promise.reject(new Error(`spine: ${MARK}。压缩没有装上，这一刀没有执行。${this.reason}`));
+      return Promise.reject(new Error(`spine: ${MARK}. Compaction is not installed, so this cut did not run. ${this.reason}`));
     }
 
     compactNow() {
-      const message = `spine: ${MARK}。压缩没有装上，这一刀没有执行。${this.reason}`;
+      const message = `spine: ${MARK}. Compaction is not installed, so this cut did not run. ${this.reason}`;
       if (ManualCompactionError) return Promise.reject(new ManualCompactionError("summary", message));
       return Promise.reject(new Error(message));
     }
@@ -117,7 +117,7 @@ export default class LiveCompactEntry {
     cause ??= new Error("spine: engine missing");
     if (!skipStock && process.env.SPINE_STOCK_FAIL !== "1" && Stock) {
       try {
-        visibleTakeover(ctx, `这一轮用原版压缩。${reasonText(cause)}`);
+        visibleTakeover(ctx, `Using stock compaction for this round. ${reasonText(cause)}`);
         return new Stock(ctx, config);
       } catch (error) {
         cause = error instanceof Error ? error : new Error(String(error));
@@ -125,7 +125,7 @@ export default class LiveCompactEntry {
       }
     }
     visibleTakeover(ctx, reasonText(cause));
-    if (!UnavailableCompaction) throw new Error(`spine: ${MARK}。压缩接口没有装上。${reasonText(cause)}`);
+    if (!UnavailableCompaction) throw new Error(`spine: ${MARK}. The compaction interface is not installed. ${reasonText(cause)}`);
     return new UnavailableCompaction(ctx, reasonText(cause));
   }
 }

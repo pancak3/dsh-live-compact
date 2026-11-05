@@ -1,10 +1,11 @@
-// shadow-search 的自测（node --test test/shadow-search.test.mjs）
+// Self-test for shadow-search (node --test test/shadow-search.test.mjs)
 //
-// 目录一律用临时目录构造：本模块的前提就是「目录由调用方传入」，
-// 所以测试也不依赖本机任何真实路径。
+// Directories are always built from temp dirs: the module's premise is that the
+// caller supplies the directory, so the tests depend on no real local path.
 //
-// 1.0.6 起备份按会话分目录（`sessionDir(root, key)`），这里覆盖两种给法：
-// 直接给会话目录、以及给 root + sessionKey 由模块定位。
+// Since 1.0.6 backups are split per session (`sessionDir(root, key)`); these
+// tests cover both forms: passing the session directory directly, and passing
+// root + sessionKey so the module locates it.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -15,8 +16,8 @@ import { searchShadow } from "../shadow-search.js";
 import { shadowFileBody, sessionDir } from "../shadow.js";
 
 /**
- * 造一个按会话分目录的 shadow 根，返回 { root, sessionDirOf, write }。
- * write(sessionKey, name, body) 会写到该会话目录里。
+ * Build a shadow root split per session; returns { root, sessionDirOf, write }.
+ * write(sessionKey, name, body) writes into that session's directory.
  */
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), "spine-search-"));
@@ -29,43 +30,43 @@ function fixture() {
   return { root, sessionDirOf, write };
 }
 
-test("按会话目录检索：命中返回文件、会话键与 1 起始行号", () => {
+test("search by session directory: hits return file, session key and 1-based line number", () => {
   const { root, sessionDirOf, write } = fixture();
-  write("sess-a", "cut-1-aaaaaaaa.txt", "第一行\ncommit 99f51d0 已推送\n第三行");
+  write("sess-a", "cut-1-aaaaaaaa.txt", "first line\ncommit 99f51d0 pushed\nthird line");
   const result = searchShadow({ dir: sessionDirOf("sess-a"), pattern: "99f51d0" });
   assert.equal(result.scanned, 1);
   assert.equal(result.matches.length, 1);
   assert.equal(result.matches[0].sessionKey, "sess-a");
-  assert.equal(result.matches[0].line, 3, "首行是 # spine-session 头，命中在正文第 3 行");
+  assert.equal(result.matches[0].line, 3, "the first line is the # spine-session header, so the hit is on line 3");
 });
 
-test("root + sessionKey 形式：只定到该会话目录", () => {
+test("root + sessionKey form: resolves only that session directory", () => {
   const { root, write } = fixture();
   write("sess-a", "cut-2-bbbbbbbb.txt", "want-this-line");
   write("sess-b", "cut-3-cccccccc.txt", "want-this-line");
   const result = searchShadow({ root, sessionKey: "sess-a", pattern: "want-this-line" });
   assert.equal(result.directory, sessionDir(root, "sess-a"));
-  assert.equal(result.matches.length, 1, "另一个会话的同名内容不得被搜到");
+  assert.equal(result.matches.length, 1, "identical content in another session must not be found");
   assert.equal(result.matches[0].sessionKey, "sess-a");
 });
 
-test("会话头本身不参与匹配", () => {
+test("the session header itself does not participate in matching", () => {
   const { sessionDirOf, write } = fixture();
-  write("want-this-session-key", "cut-4-dddddddd.txt", "正文里没有关键词");
+  write("want-this-session-key", "cut-4-dddddddd.txt", "the body has no keyword");
   const result = searchShadow({ dir: sessionDirOf("want-this-session-key"), pattern: "want-this-session-key" });
-  assert.equal(result.matches.length, 0, "首行 # spine-session 是元信息，不应命中");
+  assert.equal(result.matches.length, 0, "the # spine-session first line is metadata and must not match");
 });
 
-test("正则模式与忽略大小写", () => {
+test("regex mode and ignore case", () => {
   const { sessionDirOf, write } = fixture();
-  write("sess-a", "cut-5-eeeeeeee.txt", "Commit 99F51D0\n另一个 commit abc1234");
+  write("sess-a", "cut-5-eeeeeeee.txt", "Commit 99F51D0\nanother commit abc1234");
   const byRegex = searchShadow({ dir: sessionDirOf("sess-a"), pattern: "commit [0-9a-f]{7}", regex: true, ignoreCase: true });
   assert.equal(byRegex.matches.length, 2);
   const byIgnoreCase = searchShadow({ dir: sessionDirOf("sess-a"), pattern: "99f51d0", ignoreCase: true });
   assert.equal(byIgnoreCase.matches.length, 1);
 });
 
-test("limit 截断时 truncated 为 true，且不超额返回", () => {
+test("limit truncation sets truncated true and never returns extra hits", () => {
   const { sessionDirOf, write } = fixture();
   write("sess-a", "cut-6-ffffffff.txt", Array.from({ length: 10 }, () => "needle").join("\n"));
   const result = searchShadow({ dir: sessionDirOf("sess-a"), pattern: "needle", limit: 3 });
@@ -73,7 +74,7 @@ test("limit 截断时 truncated 为 true，且不超额返回", () => {
   assert.equal(result.truncated, true);
 });
 
-test("超大文件跳过并计入 skipped，不影响其它文件", () => {
+test("oversize files are skipped and counted, without affecting other files", () => {
   const { sessionDirOf, write } = fixture();
   write("sess-a", "cut-7-11111111.txt", "x".repeat(2048) + "needle");
   write("sess-a", "cut-8-22222222.txt", "needle");
@@ -84,28 +85,28 @@ test("超大文件跳过并计入 skipped，不影响其它文件", () => {
   assert.match(result.matches[0].file, /cut-8/);
 });
 
-test("不递归子目录：只读指定的这一层", () => {
+test("no recursion into subdirectories: only the given level is read", () => {
   const { root, sessionDirOf, write } = fixture();
   write("sess-a", "cut-9-33333333.txt", "needle");
-  // 在 sess-a 目录里再套一个子目录，里面也放同名内容的文件
+  // Nest a subdirectory inside sess-a that also holds a file with the same content
   const nested = join(sessionDirOf("sess-a"), "nested");
   mkdirSync(nested, { recursive: true });
   writeFileSync(join(nested, "deep.txt"), shadowFileBody("sess-a", "needle"), "utf8");
   const result = searchShadow({ dir: sessionDirOf("sess-a"), pattern: "needle" });
-  assert.equal(result.scanned, 1, "子目录里的文件不该被读到");
+  assert.equal(result.scanned, 1, "files in a subdirectory must not be read");
   assert.ok(!result.matches.some((m) => m.file.includes("nested")));
-  assert.equal(result.directory, sessionDirOf("sess-a"), "根目录参数只用来定位，不参与扫描");
+  assert.equal(result.directory, sessionDirOf("sess-a"), "the root argument only resolves the directory; it does not participate in the scan");
   void root;
 });
 
-test("目录不存在时返回空结果而不是抛错", () => {
+test("a missing directory returns an empty result instead of throwing", () => {
   const { root } = fixture();
   const result = searchShadow({ root, sessionKey: "no-such-session", pattern: "x" });
   assert.deepEqual({ scanned: result.scanned, matches: result.matches.length }, { scanned: 0, matches: 0 });
 });
 
-test("目录参数缺失或 pattern 缺失时抛 TypeError", () => {
+test("a missing directory argument or pattern throws TypeError", () => {
   assert.throws(() => searchShadow({ pattern: "x" }), /either dir .* or root \+ sessionKey/);
-  assert.throws(() => searchShadow({ root: "/tmp" }), /either dir .* or root \+ sessionKey/, "只给 root 不行：那等于扫全部会话");
+  assert.throws(() => searchShadow({ root: "/tmp" }), /either dir .* or root \+ sessionKey/, "root alone must not work: that would mean scanning every session");
   assert.throws(() => searchShadow({ dir: "/tmp" }), /pattern is required/);
 });

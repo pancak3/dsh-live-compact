@@ -99,9 +99,9 @@ export default class LiveCompactGate {
           const engine = engineEntry(rewritten);
           if (engine) {
             const config = engine.config || {};
-            ctx.logger?.info?.(`spine: 预设 ${id} 已换包 ${engine.name} thresholdRatio=${config.thresholdRatio} headroomTokens=${config.headroomTokens} retainTokens=${config.retainTokens} compactionRetries=${config.compactionRetries}`);
+            ctx.logger?.info?.(`spine: preset ${id} swapped to ${engine.name} thresholdRatio=${config.thresholdRatio} headroomTokens=${config.headroomTokens} retainTokens=${config.retainTokens} compactionRetries=${config.compactionRetries}`);
           } else if (!loadable) {
-            ctx.logger?.warn?.(`spine: 本会话未接管预设 ${id}，仍用原版压缩。`);
+            ctx.logger?.warn?.(`spine: preset ${id} not taken over in this session; still using stock compaction.`);
           }
         }
         return rewritten;
